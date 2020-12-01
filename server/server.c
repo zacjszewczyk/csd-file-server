@@ -13,6 +13,10 @@ int main(int argc, char const *argv[])
 	// Validate that the user entered two command-line arguments
 	if (argc != 5) {
 		printf("Error: Server port and target directory not specified. Please try again.\n");
+		printf("usage: server -p SERVER_PORT -d TARGET_DIRECTORY\n");
+		printf("  -p  The port on which to make the file server available.\n");
+		printf("  -d  The directory in which to store files, and from which to serve them.\n");
+		printf("Note: The order of the parameters is unimportant.\n");
 		exit(1);
 	}
 	// Extract and validate server port
