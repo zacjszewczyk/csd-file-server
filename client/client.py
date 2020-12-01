@@ -25,12 +25,27 @@ def ip(arg):
     if not match(r"(\d{1,3}\.){3}\d{1,3}",arg): raise ArgumentTypeError
     return arg
 
+# Class: conn
+# Purpose: Provide a simple wrapper for creating socket connections and
+# managing data transfers through them.
 class conn:
+    # Method: __init__
+    # Purpose: Create a new socket.
+    # Paramters:
+    # - server: Server IP address (String)
+    # - server_port: Server port (Int)
+    # Return: None
     def __init__(self, server=None, server_port=None):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server = server
         self.server_port = server_port
 
+    # Method: connect
+    # Purpose: Connect to the host at server:server_port
+    # Paramters: 
+    # - server: Server IP address (String)
+    # - server_port: Server port (Int)
+    # Return: None
     def connect(self, server=None, server_port=None):
         # Ensure that the user has, either when creating a new "conn" object
         # or when calling this function, provided a server IP address. Store
@@ -47,57 +62,84 @@ class conn:
         self.server_port = self.server_port if self.server_port != None else server_port
         
         # Connect to the server at self.server on port self.server_port
-        self.sock.connect((self.server, self.server_port))
+        return self.sock.connect((self.server, self.server_port))
 
+    # Method: close
+    # Purpose: Terminate socket connection.
+    # Paramters: None
+    # Return: None
     def close(self):
         self.sock.shutdown(socket.SHUT_RDWR)
         self.sock.close()
 
+    # Method: send_file
+    # Purpose: Helper method to send an entire file.
+    # Paramters: 
+    # - filename: Name of file to be transferred.
+    # Return: 
+    # - Number of bytes transferred (Int)
     def send_file(self, filename):
+        bytes_transferred = 0
         fd = open(filename, "rb")
         while True:
             chunk = fd.read(CHUNKSIZE)
             self._send(chunk)
+            bytes_transferred += len(chunk)
             if (len(chunk) < CHUNKSIZE): break
         fd.close()
-        del fd
+        return bytes_transferred
 
+    # Method: send_msg
+    # Purpose: Helper method to send a string message.
+    # Paramters: 
+    # - msg : Message to send (String)
+    # Return:
+    # - Number of bytes transferred (Int)
     def send_msg(self, msg):
+        bytes_transferred = 0
         b = bytes(msg, encoding="utf-8")
         for chunk in (b[i:i+CHUNKSIZE] for i in range(0, len(b), CHUNKSIZE)):
             self._send(chunk)
-        del b
+            bytes_transferred += len(chunk)
+        return bytes_transferred
 
+    # Method: _send
+    # Purpose: Internal method for sending data through the socket.
+    # Paramters: 
+    # - buff: Bytes to send (Bytes)
+    # Return: None
     def _send(self, buff):
         self.sock.send(buff)
     
+    # Method: save_as
+    # Purpose: Helper method to save data transferred through socket as a file.
+    # Paramters: 
+    # - filename: Name of output file.
+    # Return: None.
     def save_as(self, filename):
         fd = open(filename, "wb")
         fd.write(self._recv())
         fd.close()
-        return 0
 
+    # Method: get_msg
+    # Purpose: Helper method to read a string sent through a socket.
+    # Paramters: None.
+    # Return: 
+    # - Decoded message (String)
     def get_msg(self):
         return self._recv().decode("utf-8")
 
+    # Method: _recv
+    # Purpose: Internal method to read chunked data transferred through a socket.
+    # Paramters: None
+    # Return: 
+    # - Bytes read through socket (Bytes)
     def _recv(self):
         buff = []
         while True:
             buff.append(self.sock.recv(CHUNKSIZE))
             if (len(buff[-1]) < 1024): break
         return b"".join(buff)
-
-
-    # def myreceive(self):
-    #     chunks = []
-    #     bytes_recd = 0
-    #     while bytes_recd < MSGLEN:
-    #         chunk = self.sock.recv(min(MSGLEN - bytes_recd, 2048))
-    #         if chunk == b'':
-    #             raise RuntimeError("socket connection broken")
-    #         chunks.append(chunk)
-    #         bytes_recd = bytes_recd + len(chunk)
-    #     return b''.join(chunks)
 
 # If run as a standalone program, parse the supplied arguments and act
 # accordingly; if this script is imported into another, this section will
