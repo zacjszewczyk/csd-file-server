@@ -9,16 +9,19 @@
 // Main function
 int main(int argc, char const *argv[]) 
 { 
+	char help[] = "usage: server -p SERVER_PORT -d TARGET_DIRECTORY\n  -p  The port on which to make the file server available.\n  -d  The directory in which to store files, and from which to serve them.\n  -h  Display this help menu.\nNote: The order of the parameters is unimportant.";
+
 	// Perform basic input validation.
 	// Validate that the user entered two command-line arguments
-	if (argc != 5) {
-		printf("Error: Server port and target directory not specified. Please try again.\n");
-		printf("usage: server -p SERVER_PORT -d TARGET_DIRECTORY\n");
-		printf("  -p  The port on which to make the file server available.\n");
-		printf("  -d  The directory in which to store files, and from which to serve them.\n");
-		printf("Note: The order of the parameters is unimportant.\n");
+	if (argc == 1 || (strstr(argv[1], "-h") || strstr(argv[1], "--help"))) {
+		printf("%s\n",help);
+		exit(0);
+	} else if (argc != 5) {
+		printf("Error: Server port and target directory not specified. Please try again.\n\n");
+		printf("%s\n",help);
 		exit(1);
 	}
+
 	// Extract and validate server port
 	int port_location = 0;
 	if (strstr(argv[1],"-p")) {
