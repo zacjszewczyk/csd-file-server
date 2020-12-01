@@ -115,24 +115,20 @@ int main(int argc, char const *argv[])
 
 		// Handle a file upload.
 		if (strstr(buff,"UPLOAD") != NULL) {
-			memset(buff, 0, sizeof buff); // Clear "buff".
-			
-			// Notify the client that the server is ready to receive the file.
-			send(client_sock , "READY", 5, 0);
-
-			// Read the file's name from the "SENDING X" response, where "X"
-			// is the file's name.
-			bytes_transferred = read(client_sock, buff, 1024);
-
 			// Extract the filename from the message and store it in the
 			// variable "fn." Concatenate this with the path provided by the
 			// user to produce "filename".
-			bytes_transferred = read(client_sock, buff, 1024);
 			char *fn = strtok(buff, " ");
 			fn = strtok(NULL, " ");
 			char filename[128];
 			strcpy(filename, dir);
 			strcat(filename, fn);
+
+			// Notify the client that the server is ready to receive the file.
+			char temp[128];
+			strcpy(temp, "READY ");
+			strcat(temp, fn);
+			send(client_sock , temp, strlen(temp), 0);
 
 			// Print a status message to the user.
 			printf("Receiving file %s ... ",filename);
@@ -144,6 +140,7 @@ int main(int argc, char const *argv[])
 			fclose(fd);
 			fd = fopen(filename,"a");
 
+			memset(buff, 0, sizeof buff); // Clear "buff".
 			// Continue reading data from the client socket in 1024 byte chunks
 			// until the client stops sending data.
 			while ((bytes_transferred = read(client_sock, buff, 1024)) != 0) {
@@ -161,14 +158,11 @@ int main(int argc, char const *argv[])
 		} 
 		// Handle file download.
 		else if (strstr(buff,"DOWNLOAD") != NULL) {
-			memset(buff, 0, sizeof buff); // Clear "buff".
-			
 			// Notify the client that the server is ready to send the file.
 			send(client_sock , "READY", 5, 0);
 
 			// Read the desired file's name into "fn" Concatenate this with
 			// the path provided by the user to produce "filename".
-			bytes_transferred = read(client_sock, buff, 1024);
 			char *fn = strtok(buff, " ");
 			fn = strtok(NULL, " ");
 			char filename[128];
