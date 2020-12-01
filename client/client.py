@@ -155,12 +155,11 @@ if (__name__ == "__main__"):
         if (args.verbose): print(f"Uploading file {args.filename} ... ", end="", flush=True)
 
         # Notify the server of a pending file upload.
-        c.send_msg(args.action)
+        c.send_msg(f"{args.action} {args.filename}")
         
         # If the server is ready for the file upload, first send the filename,
         # then upload the file.
-        if (c.get_msg() == "READY"):
-            c.send_msg(f"SENDING {args.filename}")
+        if ("READY" in c.get_msg()):
             c.send_file(args.filename)
         # If the server is not ready for the file upload, print an error
         # message for the user and prompt them to retry.
@@ -179,11 +178,10 @@ if (__name__ == "__main__"):
             raise Exception("Error: File to download already exists.")
         
         # Request a file download from the server.
-        c.send_msg(args.action)
+        c.send_msg(f"DOWNLOAD {args.filename}")
 
         # If the server is ready for the file download, send the filename.
         if (c.get_msg() == "READY"):
-            c.send_msg(f"DOWNLOAD {args.filename}")
             # If the server responde with "SENDING", receive the file and save
             # it with the filename supplied by the user.
             resp  = c.get_msg()
